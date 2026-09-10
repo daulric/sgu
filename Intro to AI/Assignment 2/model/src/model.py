@@ -1,12 +1,18 @@
+from functools import reduce
+from glob import glob
+import pandas as pd
 import torch
 import torch.nn as nn
+import torch.optim as optim
 from torch import Tensor
-import pandas as pd
-from glob import glob
-from functools import reduce
+import matplotlib.pyplot as plt
+import numpy as np
+import diagram
+
+from diagram import Diagram
 
 torch.manual_seed(1)
-hidden_layers = [100, 50, 25] # higher the network, the more its connected
+hidden_layers = [16,8]
 output_layers = 1
 
 file_paths = glob("data/*.csv")
@@ -20,15 +26,34 @@ class SimpleNN(nn.Module):
 
         for h_dim in hidden_sizes:
             layers.append(nn.Linear(in_dim, h_dim))
+            layers.append(nn.ReLU())
             in_dim = h_dim
 
         layers.append(nn.Linear(in_dim, output_size))
         self.network = nn.Sequential(*layers)
-        
 
     def forward(self, x: Tensor) -> Tensor:
         return self.network(x)
 
+def chooseHiddenLayers(num_samples, input_dim): # this selects how many layers thats needed
+    first_width = max(4, min(64, num_samples * 2, input_dim))
+
+    if num_samples < 20:
+        depth = 1
+    elif num_samples < 60:
+        depth = 2
+    elif num_samples < 150:
+        depth = 3
+    else:
+        depth = 4
+
+    layers = [first_width]
+    width = first_width
+    for _ in range(depth - 1):
+        width = max(4, width // 2)
+        layers.append(width)
+
+    return layers
 
 def load_report(path, idx):
     raw = pd.read_csv(path, header=None)
@@ -71,16 +96,48 @@ student_names = merged_df["Student"].tolist()
 features_df = merged_df.drop(columns=["Student", "Position"], errors="ignore")
 features_df = features_df.apply(pd.to_numeric, errors="coerce").fillna(0)
 
-x_tensor: Tensor = torch.tensor(features_df.values, dtype=torch.float32)
+valid_means = features_df.replace(0, pd.NA).mean(axis=1, skipna=True).fillna(0)
+
+features_normalized = (features_df - features_df.mean()) / (features_df.std() + 1e-8)
+x_tensor: Tensor = torch.tensor(features_normalized.values, dtype=torch.float32)
+
+y_labels = (valid_means >= 50.0).astype(float).values
+y_tensor: Tensor = torch.tensor(y_labels, dtype=torch.float32).unsqueeze(1)
 
 num_students, input_layers = x_tensor.shape
+
+hidden_layers = chooseHiddenLayers(x_tensor.shape[0], input_layers)
+print("Tensor Shape:", x_tensor.shape[0])
+output_layers = 1
 model = SimpleNN(input_layers, hidden_layers, output_layers)
 
-output = model(x_tensor)
+criterion = nn.BCEWithLogitsLoss()
+optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-print("Model Output:", output)
+epochs = 100
+model.train()
+
+for epoch in range(1, epochs + 1):
+    optimizer.zero_grad()
+    predictions = model(x_tensor)
+    loss = criterion(predictions, y_tensor)
+    loss.backward()
+    optimizer.step()
+
+model.eval()
+with torch.no_grad():
+    output = model(x_tensor)
+
+print(f"Hidden Layers Amount: {len(hidden_layers)}")
+for idx, layer_size in enumerate(hidden_layers):
+    print(f"Hidden Layer {idx + 1} Size: {layer_size}")
 
 for name, pred in zip(student_names, output):
     probability = torch.sigmoid(pred)
     pass_or_fail = (probability >= 0.5).int()
     print(f"Student: {name:<16} | Model Output: {pred.item():.4f} | Probability: {(probability.item() * 100):.4f}% | {'Pass' if pass_or_fail.item() == 1 else 'Fail'}")
+
+d = Diagram(model, x_tensor, student_names)
+
+d.plot_diagram()
+d.render_network_diagram()
