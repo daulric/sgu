@@ -5,7 +5,7 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
-def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str], file_name: str = "./output/real_layer_activations.png"):
+def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str], file_name: str = "./output/real_layer_activations_graph.png"):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
     model.eval()
 
@@ -13,7 +13,6 @@ def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str
     layer_names = ["Input Layer"]
     x = x_data
 
-    # Retrieve sequential container safely for typing
     network = getattr(model, 'network', model)
     layers = list(network.children())
     total_layers = len(layers)
@@ -31,22 +30,32 @@ def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str
                 activations.append(probs)
                 layer_names.append("Output Probabilities")
 
-    fig, axes = plt.subplots(len(activations), 1, figsize=(10, 3 * len(activations)))
+    fig, axes = plt.subplots(len(activations), 1, figsize=(12, 3.5 * len(activations)))
 
     if len(activations) == 1:
         axes = [axes]
 
     for idx, (act, name) in enumerate(zip(activations, layer_names)):
         ax = axes[idx]
-        im = ax.imshow(act, aspect='auto', cmap='viridis')
+        num_students, num_neurons = act.shape
+        neuron_indices = range(num_neurons)
+
+        # Plot a line for each individual student
+        for student_idx in range(num_students):
+            ax.plot(neuron_indices, act[student_idx], color='#67E8F9', alpha=0.25, linewidth=0.8)
+
+        # Plot the mean activation profile across all students in bold
+        mean_activation = act.mean(axis=0)
+        ax.plot(neuron_indices, mean_activation, color='#0066FF', linewidth=2.0, label='Mean Activation')
+
         ax.set_title(f"{name} | Shape: {act.shape}", fontsize=11, fontweight='bold')
-        ax.set_yticks(range(len(student_names)))
-        ax.set_yticklabels(student_names)
         ax.set_xlabel("Neuron Index")
-        fig.colorbar(im, ax=ax, orientation='vertical', pad=0.02)
+        ax.set_ylabel("Activation Value")
+        ax.grid(True, linestyle='--', alpha=0.5)
+        ax.legend(loc='upper right')
 
     plt.tight_layout()
-    plt.savefig(file_name, bbox_inches='tight')
+    plt.savefig(file_name, bbox_inches='tight', dpi=300)
     plt.close()
 
 def render_network_diagram(input_dim: int, hidden_sizes: list[int], output_dim: int, filename: str = "./output/deep_neural_network.png"):
@@ -129,6 +138,18 @@ def render_network_diagram(input_dim: int, hidden_sizes: list[int], output_dim: 
     plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close()
 
+def plot_performance_graph(epochs, train_losses, filename: str = "./output/training_loss.png"):
+    plt.figure(figsize=(8, 4), dpi=300)
+    plt.plot(range(1, epochs + 1), train_losses, color='#0066FF', linewidth=2, label='Training Loss')
+    plt.title("Training Loss Curve", fontweight='bold')
+    plt.xlabel("Epochs")
+    plt.ylabel("BCE Loss")
+    plt.grid(True, linestyle='--', alpha=0.5)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(filename)
+    plt.close()
+
 # performance graph need here
 
 class Diagram:
@@ -149,3 +170,6 @@ class Diagram:
         output_dim = linear_layers[-1].out_features
 
         render_network_diagram(input_dim, hidden_sizes, output_dim, filename)
+
+    def plot_performance_graph(self, epochs, train_losses, file_name="./output/training_loss.png"):
+        plot_performance_graph(epochs, train_losses, file_name)
