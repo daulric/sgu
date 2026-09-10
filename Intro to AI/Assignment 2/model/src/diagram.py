@@ -140,12 +140,11 @@ class Diagram:
     def plot_diagram(self, file_name: str = "./output/real_layer_activations.png"):
         plot_diagram(self.model, self.x_data, self.student_names, file_name)
 
-    def render_network_diagram(self, filename: str = "./output/deep_neural_network.png"):
+    def render_network_diagram(self, input_dim, filename: str = "./output/deep_neural_network.png"):
         # Safely extract Linear layers across types
         network = getattr(self.model, 'network', self.model)
         linear_layers = [cast(nn.Linear, layer) for layer in network.children() if isinstance(layer, nn.Linear)]
 
-        input_dim = linear_layers[0].in_features
         hidden_sizes = [layer.out_features for layer in linear_layers[:-1]]
         output_dim = linear_layers[-1].out_features
 

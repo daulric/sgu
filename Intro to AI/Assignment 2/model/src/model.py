@@ -12,8 +12,6 @@ import diagram
 from diagram import Diagram
 
 torch.manual_seed(1)
-hidden_layers = [16,8]
-output_layers = 1
 
 file_paths = glob("data/*.csv")
 
@@ -105,10 +103,11 @@ y_labels = (valid_means >= 50.0).astype(float).values
 y_tensor: Tensor = torch.tensor(y_labels, dtype=torch.float32).unsqueeze(1)
 
 num_students, input_layers = x_tensor.shape
+print("Tensor Shape: ",x_tensor.shape)
 
-hidden_layers = chooseHiddenLayers(x_tensor.shape[0], input_layers)
-print("Tensor Shape:", x_tensor.shape[0])
+hidden_layers = chooseHiddenLayers(num_students, input_layers)
 output_layers = 1
+
 model = SimpleNN(input_layers, hidden_layers, output_layers)
 
 criterion = nn.BCEWithLogitsLoss()
@@ -140,4 +139,4 @@ for name, pred in zip(student_names, output):
 d = Diagram(model, x_tensor, student_names)
 
 d.plot_diagram()
-d.render_network_diagram()
+d.render_network_diagram(num_students)
