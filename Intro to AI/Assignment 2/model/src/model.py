@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, confusion_matrix
 torch.manual_seed(1)
 
 file_paths = glob("data/*.csv")
-max_samples = None # u can set the max amount of input
+max_samples = 10 # u can set the max amount of input. Set None if you want to use all input data
 
 class SimpleNN(nn.Module):
     def __init__(self, input_size, hidden_sizes: list[int], output_size) -> None:
