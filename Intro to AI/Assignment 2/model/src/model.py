@@ -12,7 +12,7 @@ from sklearn.metrics import accuracy_score, precision_score, confusion_matrix
 torch.manual_seed(1)
 
 file_paths = glob("data/*.csv")
-
+max_samples = None
 class SimpleNN(nn.Module):
     def __init__(self, input_size, hidden_sizes: list[int], output_size) -> None:
         super(SimpleNN, self).__init__()
@@ -87,6 +87,9 @@ merged_df = reduce(
     lambda left, right: pd.merge(left, right, on="Student", how="outer"),
     processed_dfs
 )
+
+if max_samples and max_samples > 0:
+    merged_df.head(max_samples)
 
 student_names = merged_df["Student"].tolist()
 features_df = merged_df.drop(columns=["Student", "Position"], errors="ignore")

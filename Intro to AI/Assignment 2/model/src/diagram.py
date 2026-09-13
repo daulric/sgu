@@ -7,13 +7,12 @@ import matplotlib.patches as patches
 from datetime import datetime
 
 def get_safe_filepath(base_dir="./output", prefix: str = "default", extension="png"):
-
     now = datetime.now()
     date_folder = now.strftime("%Y-%m-%d")
+    hour_folder = now.strftime("%H")
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     
-    # Build directory path and create it if missing
-    target_dir = os.path.join(base_dir, date_folder)
+    target_dir = os.path.join(base_dir, date_folder, hour_folder)
     os.makedirs(target_dir, exist_ok=True)
     
     filename = f"{prefix}_{timestamp}.{extension.lstrip('.')}"
