@@ -4,8 +4,22 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+from datetime import datetime
 
-def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str], file_name: str = "./output/real_layer_activations_graph.png"):
+def get_safe_filepath(base_dir="./output", prefix: str = "default", extension="png"):
+
+    now = datetime.now()
+    date_folder = now.strftime("%Y-%m-%d")
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    
+    # Build directory path and create it if missing
+    target_dir = os.path.join(base_dir, date_folder)
+    os.makedirs(target_dir, exist_ok=True)
+    
+    filename = f"{prefix}_{timestamp}.{extension.lstrip('.')}"
+    return os.path.join(target_dir, filename)
+
+def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str], file_name: str = get_safe_filepath("./output", "real_layer_activations_graph")):
     os.makedirs(os.path.dirname(file_name), exist_ok=True)
     model.eval()
 
@@ -58,7 +72,7 @@ def plot_diagram(model: nn.Module, x_data: torch.Tensor, student_names: list[str
     plt.savefig(file_name, bbox_inches='tight', dpi=300)
     plt.close()
 
-def render_network_diagram(input_dim: int, hidden_sizes: list[int], output_dim: int, filename: str = "./output/deep_neural_network.png"):
+def render_network_diagram(input_dim: int, hidden_sizes: list[int], output_dim: int, filename: str = get_safe_filepath("./output", "network_diagram")):
     os.makedirs(os.path.dirname(filename), exist_ok=True)
     
     # Increased figure height to give room for 64 small circles
@@ -138,7 +152,7 @@ def render_network_diagram(input_dim: int, hidden_sizes: list[int], output_dim: 
     plt.savefig(filename, bbox_inches='tight', dpi=300)
     plt.close()
 
-def plot_performance_graph(epochs, train_losses, filename: str = "./output/training_loss.png"):
+def plot_performance_graph(epochs, train_losses, filename: str = get_safe_filepath("./output", "training_loss")):
     plt.figure(figsize=(8, 4), dpi=300)
     plt.plot(range(1, epochs + 1), train_losses, color='#0066FF', linewidth=2, label='Training Loss')
     plt.title("Training Loss Curve", fontweight='bold')
@@ -158,10 +172,10 @@ class Diagram:
         self.x_data = x_data
         self.student_names = student_names
 
-    def plot_diagram(self, file_name: str = "./output/real_layer_activations.png"):
-        plot_diagram(self.model, self.x_data, self.student_names, file_name)
+    def plot_diagram(self):
+        plot_diagram(self.model, self.x_data, self.student_names)
 
-    def render_network_diagram(self, input_dim, filename: str = "./output/deep_neural_network.png"):
+    def render_network_diagram(self, input_dim):
         # Safely extract Linear layers across types
         network = getattr(self.model, 'network', self.model)
         linear_layers = [cast(nn.Linear, layer) for layer in network.children() if isinstance(layer, nn.Linear)]
@@ -169,7 +183,7 @@ class Diagram:
         hidden_sizes = [layer.out_features for layer in linear_layers[:-1]]
         output_dim = linear_layers[-1].out_features
 
-        render_network_diagram(input_dim, hidden_sizes, output_dim, filename)
+        render_network_diagram(input_dim, hidden_sizes, output_dim)
 
-    def plot_performance_graph(self, epochs, train_losses, file_name="./output/training_loss.png"):
-        plot_performance_graph(epochs, train_losses, file_name)
+    def plot_performance_graph(self, epochs, train_losses):
+        plot_performance_graph(epochs, train_losses)
