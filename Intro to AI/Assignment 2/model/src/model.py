@@ -13,6 +13,7 @@ torch.manual_seed(1)
 
 file_paths = glob("data/*.csv")
 max_samples = None # u can set the max amount of input
+
 class SimpleNN(nn.Module):
     def __init__(self, input_size, hidden_sizes: list[int], output_size) -> None:
         super(SimpleNN, self).__init__()
