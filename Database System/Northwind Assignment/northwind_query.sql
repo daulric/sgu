@@ -1,6 +1,8 @@
+-- Active: 1789401444062@@127.0.0.1@3306@northwind
 -- 1. Provide a list of countries by name, that are represented in the customer database
 SELECT `Country` 
 FROM Customers
+WHERE `Country` IS NOT NULL
 GROUP BY `Country`;
 
 -- 2. Provide a list of all such products with high quantities in stock, i.e., 50 or more.
@@ -9,7 +11,7 @@ FROM Products
 WHERE `UnitsInStock` >= 50;
 
 -- 3. Which active products are at or below the minimum stock level (Hint: ReorderLevel) and have not been reordered yet?
-SELECT `ProductName`, `ReorderLevel` 
+SELECT `ProductName` 
 FROM `Products`
 WHERE `UnitsInStock` < `ReorderLevel`;
 
@@ -19,17 +21,19 @@ FROM `Products`
 WHERE `ProductName` LIKE "C%" AND `UnitPrice` BETWEEN 18 AND 22;
 
 -- 5. Provide a list of all regions and the territories within the regions. Print only the names of regions and territories. Sort A-Z by region, then Z-A by territory.
-SELECT `TerritoryDescription`, `Region`.`RegionDescription` AS RegionName 
+SELECT `Region`.`RegionDescription` AS RegionName , `TerritoryDescription`
 FROM `Territories`
-INNER JOIN `Region` ON `Territories`.`RegionID` = `Region`.`RegionID`;
+INNER JOIN `Region` ON `Territories`.`RegionID` = `Region`.`RegionID`
+ORDER BY `Region`.`RegionDescription` ASC, `Territories`.`TerritoryDescription` DESC;
 
 -- 6. How many territories are there per region? List the region name and the amount of territories. Provide a proper name for the count of territories per region.
-SELECT COUNT(DISTINCT `TerritoryID`) as TerritoryCount 
+SELECT `Region`.`RegionDescription` AS RegionName ,COUNT(DISTINCT `Territories`.`TerritoryID`) as TerritoryCount
 FROM `Territories`
-GROUP BY `RegionID`;
+JOIN `Region` ON `Territories`.`RegionID` = `Region`.`RegionID`
+GROUP BY `Region`.`RegionDescription` ,`Region`.`RegionID`;
 
--- 7. re there any territories for which there are no employees assigned? If so, list the names (only) of such territories and the corresponding region. Note: Use joins to accomplish this
-SELECT `TerritoryDescription`, `EmployeeTerritories`.`TerritoryID`
+-- 7. Are there any territories for which there are no employees assigned? If so, list the names (only) of such territories and the corresponding region. Note: Use joins to accomplish this
+SELECT `TerritoryDescription`
 FROM `Territories`
 LEFT JOIN `EmployeeTerritories` ON `Territories`.`TerritoryID` = `EmployeeTerritories`.`TerritoryID`
 WHERE EmployeeTerritories.TerritoryID IS NULL;
