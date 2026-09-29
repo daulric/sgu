@@ -152,10 +152,18 @@ for idx, layer_size in enumerate(hidden_layers):
     print(f"Hidden Layer {idx + 1} Size: {layer_size}")
 
 class_scores = []
+failing_scores_list = []
+passing_scores_list = []
 keep_score = 0
 
 for name, pred in zip(student_names, output):
     probability = torch.sigmoid(pred)
+
+    if (probability.item() >= 0.5):
+        passing_scores_list.append(probability.item())
+    elif (probability.item() < 0.5):
+        failing_scores_list.append(probability.item())
+
     class_scores.append((probability.item() * 100))
     pass_or_fail = (probability >= 0.5).int()
     print(f"Student: {name:<16} | Model Output: {pred.item():.4f} | Probability: {(probability.item() * 100):.4f}% | {'Pass' if pass_or_fail.item() == 1 else 'Fail'}")
@@ -163,6 +171,9 @@ for name, pred in zip(student_names, output):
 
 for s in class_scores:
     keep_score += s
+
+print(f"Passing Probability Length: { len(passing_scores_list) }")
+print(f"Failing Probability Length: { len(failing_scores_list) }")
 
 class_passing_confidence = keep_score / len(class_scores) # getting the model confidence score on the class passing rate
 print(f"Class Passing Confidence: {round(class_passing_confidence)}%")
