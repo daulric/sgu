@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE AI [
+    <!ELEMENT AI(Generative | Prediction)*>
+    <!ElEMENT Generative(Name, Date_Released, Company)>
+    <!ELEMENT Predition(Name, Date_Released, Company)>
+    <!ELEMENT Name (#PCDATA)>
+    <!ELEMENT Date_Released (#PCDATA)>
+    <!ELEMENT Company (Company+)>
+    <!ELEMENT Company (first_name, last_name)>
+    <!ELEMENT first_name (#PCDATA)>
+    <!ELEMENT last_name (#PCDATA)>
+]>
+
+
+<AI>
+    <Generative>
+        <Name>Gemini</Name>
+        <Date_Released>09/03/2020</Date_Released>
+        <Company>
+            <first_name>Saunder</first_name>
+            <last_name>surname</last_name>
+        </Company>
+    </Generative>
+
+    <Prediction>
+        <Name>Website Predition</Name>
+        <Date_Released>09/04/2023</Date_Released>
+        <Company>
+            <first_name>Tracy</first_name>
+            <last_name>Sui</last_name>
+        </Company>
+    </Prediction>
+</AI>
