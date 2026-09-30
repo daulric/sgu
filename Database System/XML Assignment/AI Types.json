@@ -4,8 +4,7 @@
             "Name": "Gemini",
             "Date_Released": "09/03/2020",
             "Company": {
-                "first_name": "Saunder",
-                "last_name": "surname"
+                "Name": "Google"
             }
         }
     ],
@@ -15,8 +14,7 @@
             "Name": "Website Predition",
             "Date_Released": "09/04/2023",
             "Company": {
-                "first_name": "Tracy",
-                "last_name": "Sui"
+                "Name": "sui cooperation"
             }
         }
     ]
